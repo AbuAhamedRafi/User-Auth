@@ -1,8 +1,13 @@
-# 🚀 Django REST API - User Authentication & Product Management
+# Django REST API - User Authentication & Product Management
 
-A **production-ready** Django REST Framework API featuring JWT authentication, role-based permissions, and comprehensive product management. Built with clean architecture principles and 100% class-based views.
+A production-ready Django REST Framework7. **Access the API**
+   - API Root: http://127.0.0.1:8000/api/
+   - Admin Panel: http://127.0.0.1:8000/admin/
+   - API Browser: Navigate to any endpoint in your browser
 
-## 📋 Table of Contents
+## API Documentationfeaturing JWT authentication, role-based permissions, and comprehensive product management. Built with clean architecture principles and 100% class-based views.
+
+## Table of Contents
 - [Features](#features)
 - [Architecture](#architecture)
 - [Quick Start](#quick-start)
@@ -11,9 +16,9 @@ A **production-ready** Django REST Framework API featuring JWT authentication, r
 - [Permissions](#permissions)
 - [Development](#development)
 
-## ✨ Features
+## Features
 
-### 🔐 Authentication System
+### Authentication System
 - **JWT-based Authentication** with access & refresh tokens
 - **Role-based Access Control**: Admin, Moderator, User
 - **Custom User Model** with extended fields
@@ -21,14 +26,14 @@ A **production-ready** Django REST Framework API featuring JWT authentication, r
 - **Password Management** with validation
 - **Token Refresh** mechanism
 
-### 👥 User Management
+### User Management
 - **Complete CRUD operations** with role-based access
 - **User Statistics** and analytics
 - **Account Status Management** (activate/deactivate)
 - **Search & Filtering** capabilities
 - **Profile Management**
 
-### 📦 Product & Category Management
+### Product & Category Management
 - **Category Management**: Full CRUD with hierarchical organization
 - **Product Management**: Advanced inventory and catalog management
 - **Stock Tracking** and availability management
@@ -36,14 +41,14 @@ A **production-ready** Django REST Framework API featuring JWT authentication, r
 - **Advanced Filtering**: By category, price range, stock status
 - **Soft Delete** for data integrity
 
-### 🛡️ Security & Permissions
+### Security & Permissions
 - **Role-based Access Control** with granular permissions
 - **JWT Token Security** with blacklisting
 - **Input Validation** and sanitization
 - **CORS Configuration** for cross-origin requests
 - **Password Strength Validation**
 
-## 🏗️ Architecture
+## Architecture
 
 ### Clean Code Principles
 - **100% Class-based Views** using Django REST Framework generics
@@ -58,7 +63,7 @@ A **production-ready** Django REST Framework API featuring JWT authentication, r
 - **Database**: PostgreSQL (configurable)
 - **API Documentation**: Built-in browsable API
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 - Python 3.10+
@@ -106,14 +111,14 @@ A **production-ready** Django REST Framework API featuring JWT authentication, r
    - API Root: http://127.0.0.1:8000/api/
    - Admin Panel: http://127.0.0.1:8000/admin/
    - API Browser: Navigate to any endpoint in your browser
-## 📚 API Documentation
+## API Documentation
 
 ### Base URL
 ```
 http://127.0.0.1:8000/api/
 ```
 
-### 🔐 Authentication Endpoints
+### Authentication Endpoints
 
 | Method | Endpoint | Description | Access | Body Parameters |
 |--------|----------|-------------|---------|-----------------|
@@ -126,7 +131,7 @@ http://127.0.0.1:8000/api/
 | `POST` | `/api/auth/change-password/` | Change password | Authenticated | `old_password`, `new_password`, `new_password_confirm` |
 | `GET` | `/api/auth/user-info/` | Current user info | Authenticated | - |
 
-### 👥 User Management Endpoints
+### User Management Endpoints
 
 | Method | Endpoint | Description | Access | Query Parameters |
 |--------|----------|-------------|---------|------------------|
@@ -139,7 +144,7 @@ http://127.0.0.1:8000/api/
 | `GET` | `/api/users/stats/` | User statistics | **Admin only** | - |
 | `POST` | `/api/users/{id}/toggle-status/` | Toggle user status | **Admin only** | - |
 
-### 📂 Category Management (Admin & Moderator Only)
+### Category Management (Admin & Moderator Only)
 
 | Method | Endpoint | Description | Access | Parameters |
 |--------|----------|-------------|---------|------------|
@@ -152,7 +157,7 @@ http://127.0.0.1:8000/api/
 | `GET` | `/api/categories/stats/` | Category statistics | **Admin & Moderator** | - |
 | `POST` | `/api/categories/{id}/toggle-status/` | Toggle status | **Admin & Moderator** | - |
 
-### 📦 Product Management
+### Product Management
 
 | Method | Endpoint | Description | Access | Parameters |
 |--------|----------|-------------|---------|------------|
@@ -167,7 +172,7 @@ http://127.0.0.1:8000/api/
 
 > **Note**: *Product stats show full details for Admin/Moderator, basic stats for Users
 
-## 🔑 Authentication
+## Authentication
 
 ### JWT Token Usage
 Include the JWT token in the Authorization header:
@@ -190,7 +195,7 @@ Authorization: Bearer <your_access_token>
 }
 ```
 
-## 🛡️ Permissions
+## Permissions
 
 ### Role-based Access Matrix
 
@@ -209,7 +214,104 @@ Authorization: Bearer <your_access_token>
 4. **IsOwnerOrAdminOrModerator**: Extended access for Moderators
 5. **IsAdminOrReadOnly**: Admin write access, others read-only
 6. **IsAdminOrModeratorForProducts**: Product-specific permissions
-| GET | `/api/` | API overview and documentation | Public |
+
+### Admin Role (`admin`)
+- **Users**: Can perform all CRUD operations on users
+- **Categories**: **Full access** - view, create, edit, delete categories
+- **Products**: **Full access** - view, create, edit, delete products  
+- **Statistics**: Access to all statistics endpoints
+- **Status Management**: Can toggle user/category/product status
+- **Special Access**: Can create admin users, access admin-only endpoints
+
+### Moderator Role (`moderator`)
+- **Users**: **NO ACCESS** - cannot manage users
+- **Categories**: **Full access** - view, create, edit, delete categories
+- **Products**: **Full access** - view, create, edit, delete products
+- **Statistics**: Access to full category/product statistics
+- **Status Management**: Can toggle category/product status
+- **Restrictions**: Cannot manage users or access user management endpoints
+
+### User Role (`user`)
+- **Users**: Can view their own profile and update their own information
+- **Categories**: **NO ACCESS** - completely blocked from category endpoints
+- **Products**: **Read-only access** - can view products but cannot create/edit/delete
+- **Statistics**: Limited access to basic product statistics only
+- **Status Management**: Cannot toggle any status
+- **Restrictions**: Cannot access admin-only endpoints, cannot manage other users
+
+### Permission Matrix
+
+| Feature | Admin | Moderator | User |
+|---------|-------|-----------|------|
+| View own profile | ✅ | ✅ | ✅ |
+| Edit own profile | ✅ | ✅ | ✅ |
+| View other users | ✅ | ❌ | ❌ |
+| Create users | ✅ | ❌ | ❌ |
+| Edit other users | ✅ | ❌ | ❌ |
+| Delete users | ✅ | ❌ | ❌ |
+| View categories | ✅ | ✅ | ❌ |
+| Create categories | ✅ | ✅ | ❌ |
+| Edit categories | ✅ | ✅ | ❌ |
+| Delete categories | ✅ | ✅ | ❌ |
+| View products | ✅ | ✅ | ✅ |
+| Create products | ✅ | ✅ | ❌ |
+| Edit products | ✅ | ✅ | ❌ |
+| Delete products | ✅ | ✅ | ❌ |
+| User statistics | ✅ | ❌ | ❌ |
+| Category statistics | ✅ | ✅ | ❌ |
+| Product statistics (full) | ✅ | ✅ | ❌ |
+| Product statistics (basic) | ✅ | ✅ | ✅ |
+
+## Security Features
+
+- **Password Validation**: Strong password requirements
+- **JWT Token Security**: Access and refresh token mechanism
+- **Role-based Access**: Granular permissions based on user roles
+- **Input Validation**: Comprehensive data validation
+- **CORS Configuration**: Configured for frontend integration
+- **User Status Management**: Ability to activate/deactivate users
+
+## Models
+
+### User Model
+```python
+class User(AbstractUser):
+    role = CharField(choices=['admin', 'moderator', 'user'], default='user')
+    email = EmailField(unique=True)
+    first_name = CharField(max_length=30)
+    last_name = CharField(max_length=30)
+    created_at = DateTimeField(auto_now_add=True)
+    updated_at = DateTimeField(auto_now=True)
+    is_active = BooleanField(default=True)
+```
+
+### Category Model
+```python
+class Category(Model):
+    name = CharField(max_length=100, unique=True)
+    description = TextField(blank=True, null=True)
+    created_at = DateTimeField(auto_now_add=True)
+    updated_at = DateTimeField(auto_now=True)
+    created_by = ForeignKey(User, on_delete=CASCADE)
+    is_active = BooleanField(default=True)
+```
+
+### Product Model
+```python
+class Product(Model):
+    name = CharField(max_length=200)
+    description = TextField(blank=True, null=True)
+    category = ForeignKey(Category, on_delete=CASCADE)  # Foreign Key
+    price = DecimalField(max_digits=10, decimal_places=2)
+    stock_quantity = PositiveIntegerField(default=0)
+    sku = CharField(max_length=50, unique=True)
+    created_at = DateTimeField(auto_now_add=True)
+    updated_at = DateTimeField(auto_now=True)
+    created_by = ForeignKey(User, on_delete=CASCADE)
+    is_active = BooleanField(default=True)
+```
+
+## Usage Examples
 
 ## Database Configuration
 
@@ -247,7 +349,7 @@ python manage.py makemigrations
 python manage.py migrate
 ```
 
-## 💡 Usage Examples
+## Usage Examples
 
 ### 1. User Registration
 ```bash
@@ -262,6 +364,24 @@ curl -X POST http://127.0.0.1:8000/api/auth/register/ \
     "password_confirm": "strongpassword123",
     "role": "user"
   }'
+```
+
+**Response:**
+```json
+{
+  "access": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
+  "refresh": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
+  "user": {
+    "id": 1,
+    "email": "john@example.com",
+    "username": "johndoe",
+    "first_name": "John",
+    "last_name": "Doe",
+    "role": "user",
+    "is_admin": false,
+    "full_name": "John Doe"
+  }
+}
 ```
 
 ### 2. User Login
@@ -292,13 +412,101 @@ curl -X POST http://127.0.0.1:8000/api/auth/login/ \
 }
 ```
 
-### 3. List Products (All Users)
+### 3. Logout User
 ```bash
-curl -X GET "http://127.0.0.1:8000/api/products/?search=phone&min_price=100&max_price=1000&in_stock=true" \
-  -H "Authorization: Bearer <your_access_token>"
+curl -X POST http://127.0.0.1:8000/api/auth/logout/ \
+  -H "Authorization: Bearer <your_access_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "refresh_token": "<your_refresh_token>"
+  }'
 ```
 
-### 4. Create Category (Admin/Moderator Only)
+**Response:**
+```json
+{
+  "message": "Successfully logged out"
+}
+```
+
+### 4. Update User Profile
+```bash
+curl -X PUT http://127.0.0.1:8000/api/auth/profile/ \
+  -H "Authorization: Bearer <your_access_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "johndoe_updated",
+    "email": "john.updated@example.com",
+    "first_name": "John",
+    "last_name": "Doe"
+  }'
+```
+
+**Response:**
+```json
+{
+  "id": 1,
+  "username": "johndoe_updated",
+  "email": "john.updated@example.com",
+  "first_name": "John",
+  "last_name": "Doe",
+  "role": "user",
+  "is_active": true,
+  "date_joined": "2025-01-01T12:00:00Z"
+}
+```
+
+### 5. Change Password
+```bash
+curl -X POST http://127.0.0.1:8000/api/auth/change-password/ \
+  -H "Authorization: Bearer <your_access_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "old_password": "strongpassword123",
+    "new_password": "newstrongpassword456",
+    "new_password_confirm": "newstrongpassword456"
+  }'
+```
+
+**Response:**
+```json
+{
+  "message": "Password changed successfully"
+}
+```
+
+### 6. Create User (Admin Only)
+```bash
+curl -X POST http://127.0.0.1:8000/api/users/ \
+  -H "Authorization: Bearer <admin_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "newuser",
+    "email": "newuser@example.com",
+    "first_name": "New",
+    "last_name": "User",
+    "password": "strongpassword123",
+    "password_confirm": "strongpassword123",
+    "role": "user",
+    "is_active": true
+  }'
+```
+
+**Response:**
+```json
+{
+  "id": 2,
+  "username": "newuser",
+  "email": "newuser@example.com",
+  "first_name": "New",
+  "last_name": "User",
+  "role": "user",
+  "is_active": true,
+  "date_joined": "2025-01-01T12:00:00Z"
+}
+```
+
+### 7. Create Category (Admin/Moderator Only)
 ```bash
 curl -X POST http://127.0.0.1:8000/api/categories/ \
   -H "Authorization: Bearer <admin_token>" \
@@ -310,7 +518,20 @@ curl -X POST http://127.0.0.1:8000/api/categories/ \
   }'
 ```
 
-### 5. Create Product (Admin/Moderator Only)
+**Response:**
+```json
+{
+  "id": 1,
+  "name": "Electronics",
+  "description": "Electronic devices and gadgets",
+  "is_active": true,
+  "created_at": "2025-01-01T12:00:00Z",
+  "updated_at": "2025-01-01T12:00:00Z",
+  "created_by": 1
+}
+```
+
+### 8. Create Product (Admin/Moderator Only)
 ```bash
 curl -X POST http://127.0.0.1:8000/api/products/ \
   -H "Authorization: Bearer <admin_token>" \
@@ -326,7 +547,90 @@ curl -X POST http://127.0.0.1:8000/api/products/ \
   }'
 ```
 
-### 6. Get User Statistics (Admin Only)
+**Response:**
+```json
+{
+  "id": 1,
+  "name": "iPhone 15",
+  "description": "Latest iPhone model",
+  "category": 1,
+  "category_name": "Electronics",
+  "price": "999.99",
+  "stock_quantity": 50,
+  "sku": "IPHONE15-001",
+  "is_active": true,
+  "created_at": "2025-01-01T12:00:00Z",
+  "updated_at": "2025-01-01T12:00:00Z",
+  "created_by": 1
+}
+```
+
+### 9. Update Product (Admin/Moderator Only)
+```bash
+curl -X PUT http://127.0.0.1:8000/api/products/1/ \
+  -H "Authorization: Bearer <admin_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "iPhone 15 Pro",
+    "description": "Updated iPhone model",
+    "category": 1,
+    "price": "1199.99",
+    "stock_quantity": 30,
+    "sku": "IPHONE15-PRO-001",
+    "is_active": true
+  }'
+```
+
+**Response:**
+```json
+{
+  "id": 1,
+  "name": "iPhone 15 Pro",
+  "description": "Updated iPhone model",
+  "category": 1,
+  "category_name": "Electronics",
+  "price": "1199.99",
+  "stock_quantity": 30,
+  "sku": "IPHONE15-PRO-001",
+  "is_active": true,
+  "created_at": "2025-01-01T12:00:00Z",
+  "updated_at": "2025-01-01T12:30:00Z",
+  "created_by": 1
+}
+```
+
+### 10. List Products (All Users)
+```bash
+curl -X GET "http://127.0.0.1:8000/api/products/?search=phone&min_price=100&max_price=1000&in_stock=true" \
+  -H "Authorization: Bearer <your_access_token>"
+```
+
+**Response:**
+```json
+{
+  "count": 1,
+  "next": null,
+  "previous": null,
+  "results": [
+    {
+      "id": 1,
+      "name": "iPhone 15 Pro",
+      "description": "Updated iPhone model",
+      "category": 1,
+      "category_name": "Electronics",
+      "price": "1199.99",
+      "stock_quantity": 30,
+      "sku": "IPHONE15-PRO-001",
+      "is_active": true,
+      "created_at": "2025-01-01T12:00:00Z",
+      "updated_at": "2025-01-01T12:30:00Z",
+      "created_by": 1
+    }
+  ]
+}
+```
+
+### 11. Get User Statistics (Admin Only)
 ```bash
 curl -X GET http://127.0.0.1:8000/api/users/stats/ \
   -H "Authorization: Bearer <admin_token>"
@@ -347,11 +651,73 @@ curl -X GET http://127.0.0.1:8000/api/users/stats/ \
 }
 ```
 
-## 🗂️ Project Structure
+### 12. Get Product Statistics
+```bash
+curl -X GET http://127.0.0.1:8000/api/products/stats/ \
+  -H "Authorization: Bearer <your_token>"
+```
+
+**Admin/Moderator Response:**
+```json
+{
+  "stats": {
+    "total_products": 10,
+    "products_in_stock": 8,
+    "products_out_of_stock": 2,
+    "total_products_including_inactive": 12,
+    "inactive_products": 2,
+    "categories_count": 5,
+    "average_price": 234.99
+  }
+}
+```
+
+**User Response (Limited):**
+```json
+{
+  "stats": {
+    "total_products": 10,
+    "products_in_stock": 8,
+    "products_out_of_stock": 2
+  }
+}
+```
+
+### 13. Toggle User Status (Admin Only)
+```bash
+curl -X POST http://127.0.0.1:8000/api/users/2/toggle-status/ \
+  -H "Authorization: Bearer <admin_token>"
+```
+
+**Response:**
+```json
+{
+  "message": "User status updated successfully",
+  "is_active": false
+}
+```
+
+### 14. Refresh JWT Token
+```bash
+curl -X POST http://127.0.0.1:8000/api/auth/token/refresh/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "refresh": "<your_refresh_token>"
+  }'
+```
+
+**Response:**
+```json
+{
+  "access": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+}
+```
+
+## Project Structure
 
 ```
 User_auth/
-├── authentication/          # 🔐 Authentication & JWT
+├── authentication/          # Authentication & JWT
 │   ├── models.py           # Custom User model
 │   ├── serializers.py      # Auth serializers
 │   ├── views.py            # Auth views (class-based)
@@ -359,26 +725,26 @@ User_auth/
 │   ├── utils.py            # Validation utilities
 │   ├── urls.py             # Auth endpoints
 │   └── admin.py            # User admin config
-├── users/                  # 👥 User Management
+├── users/                  # User Management
 │   ├── serializers.py      # User CRUD serializers
 │   ├── views.py            # User CRUD views
 │   └── urls.py             # User endpoints
-├── products/               # 📦 Product & Category Management
+├── products/               # Product & Category Management
 │   ├── models.py           # Category & Product models
 │   ├── serializers.py      # Product/Category serializers
 │   ├── views.py            # Product/Category views
 │   ├── urls.py             # Product endpoints
 │   └── admin.py            # Product admin config
-├── user_auth_project/      # ⚙️ Main Project
+├── user_auth_project/      # Main Project
 │   ├── settings.py         # Django settings
 │   └── urls.py             # Main URL routing
-├── requirements.txt        # 📋 Dependencies
-├── manage.py              # 🚀 Django management
-├── README.md              # 📖 This documentation
-└── PROJECT_SUMMARY.md     # 📊 Architecture summary
+├── requirements.txt        # Dependencies
+├── manage.py              # Django management
+├── README.md              # This documentation
+└── PROJECT_SUMMARY.md     # Architecture summary
 ```
 
-## 🔧 Development
+## Development
 
 ### Database Configuration
 The project supports both SQLite (development) and PostgreSQL (production):
@@ -420,7 +786,7 @@ The project follows:
 - **Class-based view patterns**
 - **DRY principles**
 
-## 📦 Dependencies
+## Dependencies
 
 ```txt
 Django==5.2.4
@@ -430,17 +796,6 @@ django-cors-headers==4.4.0
 psycopg2-binary==2.9.9
 ```
 
-## 🚀 Deployment
-
-### Production Checklist
-- [ ] Set `DEBUG = False`
-- [ ] Configure production database
-- [ ] Set up environment variables
-- [ ] Configure static files
-- [ ] Set up CORS properly
-- [ ] Configure allowed hosts
-- [ ] Set up SSL/HTTPS
-- [ ] Configure logging
 
 ### Docker Support (Optional)
 ```dockerfile
@@ -453,37 +808,11 @@ EXPOSE 8000
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
 ```
 
-## 📝 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🤝 Contributing
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## 📞 Support
-
-For support, email [your-email@example.com] or create an issue in the repository.
-
-## ✨ Features Roadmap
-
-- [ ] Email verification
-- [ ] Password reset functionality
-- [ ] API rate limiting
-- [ ] Advanced filtering options
-- [ ] Export functionality
-- [ ] API versioning
-- [ ] Swagger/OpenAPI documentation
-- [ ] Redis caching
-- [ ] Background tasks with Celery
-
----
-
-**Built with ❤️ using Django REST Framework**
 
 {
     "name": "New Gadget",
@@ -575,104 +904,6 @@ Content-Type: application/json
 }
 ```
 
-## Role-Based Permissions
-
-### Admin Role (`admin`)
-- **Users**: Can perform all CRUD operations on users
-- **Categories**: **Full access** - view, create, edit, delete categories
-- **Products**: **Full access** - view, create, edit, delete products  
-- **Statistics**: Access to all statistics endpoints
-- **Status Management**: Can toggle user/category/product status
-- **Special Access**: Can create admin users, access admin-only endpoints
-
-### Moderator Role (`moderator`)
-- **Users**: **NO ACCESS** - cannot manage users
-- **Categories**: **Full access** - view, create, edit, delete categories
-- **Products**: **Full access** - view, create, edit, delete products
-- **Statistics**: Access to full category/product statistics
-- **Status Management**: Can toggle category/product status
-- **Restrictions**: Cannot manage users or access user management endpoints
-
-### User Role (`user`)
-- **Users**: Can view their own profile and update their own information
-- **Categories**: **NO ACCESS** - completely blocked from category endpoints
-- **Products**: **Read-only access** - can view products but cannot create/edit/delete
-- **Statistics**: Limited access to basic product statistics only
-- **Status Management**: Cannot toggle any status
-- **Restrictions**: Cannot access admin-only endpoints, cannot manage other users
-
-## Permission Matrix
-
-| Feature | Admin | Moderator | User |
-|---------|-------|-----------|------|
-| View own profile | ✅ | ✅ | ✅ |
-| Edit own profile | ✅ | ✅ | ✅ |
-| View other users | ✅ | ❌ | ❌ |
-| Create users | ✅ | ❌ | ❌ |
-| Edit other users | ✅ | ❌ | ❌ |
-| Delete users | ✅ | ❌ | ❌ |
-| View categories | ✅ | ✅ | ❌ |
-| Create categories | ✅ | ✅ | ❌ |
-| Edit categories | ✅ | ✅ | ❌ |
-| Delete categories | ✅ | ✅ | ❌ |
-| View products | ✅ | ✅ | ✅ |
-| Create products | ✅ | ✅ | ❌ |
-| Edit products | ✅ | ✅ | ❌ |
-| Delete products | ✅ | ✅ | ❌ |
-| User statistics | ✅ | ❌ | ❌ |
-| Category statistics | ✅ | ✅ | ❌ |
-| Product statistics (full) | ✅ | ✅ | ❌ |
-| Product statistics (basic) | ✅ | ✅ | ✅ |
-
-## Security Features
-
-- **Password Validation**: Strong password requirements
-- **JWT Token Security**: Access and refresh token mechanism
-- **Role-based Access**: Granular permissions based on user roles
-- **Input Validation**: Comprehensive data validation
-- **CORS Configuration**: Configured for frontend integration
-- **User Status Management**: Ability to activate/deactivate users
-
-## Models
-
-### User Model
-```python
-class User(AbstractUser):
-    role = CharField(choices=['admin', 'moderator', 'user'], default='user')
-    email = EmailField(unique=True)
-    first_name = CharField(max_length=30)
-    last_name = CharField(max_length=30)
-    created_at = DateTimeField(auto_now_add=True)
-    updated_at = DateTimeField(auto_now=True)
-    is_active = BooleanField(default=True)
-```
-
-### Category Model
-```python
-class Category(Model):
-    name = CharField(max_length=100, unique=True)
-    description = TextField(blank=True, null=True)
-    created_at = DateTimeField(auto_now_add=True)
-    updated_at = DateTimeField(auto_now=True)
-    created_by = ForeignKey(User, on_delete=CASCADE)
-    is_active = BooleanField(default=True)
-```
-
-### Product Model
-```python
-class Product(Model):
-    name = CharField(max_length=200)
-    description = TextField(blank=True, null=True)
-    category = ForeignKey(Category, on_delete=CASCADE)  # Foreign Key
-    price = DecimalField(max_digits=10, decimal_places=2)
-    stock_quantity = PositiveIntegerField(default=0)
-    sku = CharField(max_length=50, unique=True)
-    created_at = DateTimeField(auto_now_add=True)
-    updated_at = DateTimeField(auto_now=True)
-    created_by = ForeignKey(User, on_delete=CASCADE)
-    is_active = BooleanField(default=True)
-```
-
 ## Advanced Features
 
 ### Product Filtering & Search
@@ -697,4 +928,7 @@ GET /api/products/?search=phone&category=1&min_price=100&max_price=1000&in_stock
 
 Test the API using tools like:
 - **Postman** or **Insomnia** for API testing
-**Built with ❤️ using Django REST Framework**
+- **curl** for command-line testing
+- **Django REST Framework's Browsable API** for interactive testing
+
+## Project Structure
