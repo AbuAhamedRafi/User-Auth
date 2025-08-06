@@ -8,6 +8,7 @@ class User(AbstractUser):
     """
     ROLE_CHOICES = [
         ('admin', 'Admin'),
+        ('moderator', 'Moderator'),
         ('user', 'User'),
     ]
     
@@ -40,6 +41,11 @@ class User(AbstractUser):
     def is_admin(self):
         """Check if user has admin role"""
         return self.role == 'admin'
+    
+    @property
+    def is_moderator(self):
+        """Check if user has moderator role"""
+        return self.role == 'moderator'
     
     @property
     def is_regular_user(self):

@@ -1,5 +1,4 @@
 from rest_framework import generics, status, permissions
-from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from django.db.models import Q
 from django.utils import timezone
@@ -152,64 +151,72 @@ class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
         }, status=status.HTTP_200_OK)
 
 
-@api_view(['GET'])
-@permission_classes([permissions.IsAuthenticated, IsAdminRole])
-def user_stats_view(request):
+class UserStatsView(generics.GenericAPIView):
     """
     Get user statistics (Admin only)
     """
-    # Calculate statistics
-    total_users = User.objects.count()
-    active_users = User.objects.filter(is_active=True).count()
-    inactive_users = User.objects.filter(is_active=False).count()
-    admin_users = User.objects.filter(role='admin').count()
-    regular_users = User.objects.filter(role='user').count()
+    permission_classes = [permissions.IsAuthenticated, IsAdminRole]
+    serializer_class = AdminUserStatsSerializer
     
-    # Recent registrations (last 7 days)
-    seven_days_ago = timezone.now() - timedelta(days=7)
-    recent_registrations = User.objects.filter(created_at__gte=seven_days_ago).count()
-    
-    stats_data = {
-        'total_users': total_users,
-        'active_users': active_users,
-        'inactive_users': inactive_users,
-        'admin_users': admin_users,
-        'regular_users': regular_users,
-        'recent_registrations': recent_registrations,
-    }
-    
-    serializer = AdminUserStatsSerializer(stats_data)
-    
-    return Response({
-        'stats': serializer.data
-    }, status=status.HTTP_200_OK)
+    def get(self, request, *args, **kwargs):
+        # Calculate statistics
+        total_users = User.objects.count()
+        active_users = User.objects.filter(is_active=True).count()
+        inactive_users = User.objects.filter(is_active=False).count()
+        admin_users = User.objects.filter(role='admin').count()
+        moderator_users = User.objects.filter(role='moderator').count()
+        regular_users = User.objects.filter(role='user').count()
+        
+        # Recent registrations (last 7 days)
+        seven_days_ago = timezone.now() - timedelta(days=7)
+        recent_registrations = User.objects.filter(created_at__gte=seven_days_ago).count()
+        
+        stats_data = {
+            'total_users': total_users,
+            'active_users': active_users,
+            'inactive_users': inactive_users,
+            'admin_users': admin_users,
+            'moderator_users': moderator_users,
+            'regular_users': regular_users,
+            'recent_registrations': recent_registrations,
+        }
+        
+        serializer = self.get_serializer(stats_data)
+        
+        return Response({
+            'stats': serializer.data
+        }, status=status.HTTP_200_OK)
 
 
-@api_view(['POST'])
-@permission_classes([permissions.IsAuthenticated, IsAdminRole])
-def toggle_user_status_view(request, user_id):
+class UserToggleStatusView(generics.GenericAPIView):
     """
     Toggle user active status (Admin only)
     """
-    try:
-        user = User.objects.get(pk=user_id)
-    except User.DoesNotExist:
+    permission_classes = [permissions.IsAuthenticated, IsAdminRole]
+    queryset = User.objects.all()
+    lookup_url_kwarg = 'user_id'
+    lookup_field = 'pk'
+    
+    def post(self, request, *args, **kwargs):
+        try:
+            user = self.get_object()
+        except User.DoesNotExist:
+            return Response({
+                'error': 'User not found'
+            }, status=status.HTTP_404_NOT_FOUND)
+        
+        # Prevent admin from deactivating themselves
+        if user == request.user:
+            return Response({
+                'error': 'You cannot deactivate your own account'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        user.is_active = not user.is_active
+        user.save()
+        
+        status_text = 'activated' if user.is_active else 'deactivated'
+        
         return Response({
-            'error': 'User not found'
-        }, status=status.HTTP_404_NOT_FOUND)
-    
-    # Prevent admin from deactivating themselves
-    if user == request.user:
-        return Response({
-            'error': 'You cannot deactivate your own account'
-        }, status=status.HTTP_400_BAD_REQUEST)
-    
-    user.is_active = not user.is_active
-    user.save()
-    
-    status_text = 'activated' if user.is_active else 'deactivated'
-    
-    return Response({
-        'message': f'User {user.email} has been {status_text}',
-        'user': UserDetailSerializer(user).data
-    }, status=status.HTTP_200_OK)
+            'message': f'User {user.email} has been {status_text}',
+            'user': UserDetailSerializer(user).data
+        }, status=status.HTTP_200_OK)

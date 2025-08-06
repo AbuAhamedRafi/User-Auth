@@ -14,6 +14,19 @@ class IsAdminRole(permissions.BasePermission):
         )
 
 
+class IsAdminOrModerator(permissions.BasePermission):
+    """
+    Permission class to check if user has admin or moderator role
+    """
+    
+    def has_permission(self, request, view):
+        return (
+            request.user and
+            request.user.is_authenticated and
+            (request.user.is_admin or request.user.is_moderator)
+        )
+
+
 class IsOwnerOrAdmin(permissions.BasePermission):
     """
     Permission class to allow access to object owner or admin
@@ -29,17 +42,19 @@ class IsOwnerOrAdmin(permissions.BasePermission):
         return obj == request.user or (hasattr(obj, 'user') and obj.user == request.user)
 
 
-class IsUserRole(permissions.BasePermission):
+class IsOwnerOrAdminOrModerator(permissions.BasePermission):
     """
-    Permission class to check if user has user role
+    Permission class to allow access to object owner, admin, or moderator
     """
     
     def has_permission(self, request, view):
-        return (
-            request.user and
-            request.user.is_authenticated and
-            request.user.is_regular_user
-        )
+        return request.user and request.user.is_authenticated
+    
+    def has_object_permission(self, request, view, obj):
+        if request.user.is_admin or request.user.is_moderator:
+            return True
+        
+        return obj == request.user or (hasattr(obj, 'user') and obj.user == request.user)
 
 
 class IsAdminOrReadOnly(permissions.BasePermission):
@@ -48,11 +63,29 @@ class IsAdminOrReadOnly(permissions.BasePermission):
     """
     
     def has_permission(self, request, view):
-        if request.method in permissions.SAFE_METHODS:
-            return request.user and request.user.is_authenticated
+        if not (request.user and request.user.is_authenticated):
+            return False
         
-        return (
-            request.user and
-            request.user.is_authenticated and
-            request.user.is_admin
-        )
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        
+        return request.user.is_admin
+
+
+class IsAdminOrModeratorForProducts(permissions.BasePermission):
+    """
+    Permission class for products:
+    - Admins & Moderators: Full CRUD access
+    - Users: Read-only access
+    """
+    
+    def has_permission(self, request, view):
+        if not (request.user and request.user.is_authenticated):
+            return False
+        
+        # Allow read access for all authenticated users
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        
+        # Allow write access for admins and moderators
+        return request.user.is_admin or request.user.is_moderator

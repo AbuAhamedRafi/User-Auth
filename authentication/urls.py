@@ -5,8 +5,8 @@ from .views import (
     RegisterView,
     ProfileView,
     ChangePasswordView,
-    logout_view,
-    user_info_view,
+    LogoutView,
+    UserInfoView,
 )
 
 app_name = 'authentication'
@@ -15,11 +15,11 @@ urlpatterns = [
     # Authentication endpoints
     path('register/', RegisterView.as_view(), name='register'),
     path('login/', CustomTokenObtainPairView.as_view(), name='login'),
-    path('logout/', logout_view, name='logout'),
+    path('logout/', LogoutView.as_view(), name='logout'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     
     # User profile endpoints
     path('profile/', ProfileView.as_view(), name='profile'),
     path('change-password/', ChangePasswordView.as_view(), name='change_password'),
-    path('user-info/', user_info_view, name='user_info'),
+    path('user-info/', UserInfoView.as_view(), name='user_info'),
 ]

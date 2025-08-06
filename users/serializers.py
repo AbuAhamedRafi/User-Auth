@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from authentication.models import User
+from authentication.utils import validate_unique_email, validate_unique_username, validate_password_confirmation
 from django.contrib.auth.password_validation import validate_password
 
 
@@ -63,19 +64,10 @@ class UserCreateSerializer(serializers.ModelSerializer):
         password = attrs.get('password')
         password_confirm = attrs.pop('password_confirm', None)
         
-        if password != password_confirm:
-            raise serializers.ValidationError("Passwords don't match.")
-        
-        # Validate password strength
+        validate_password_confirmation(password, password_confirm)
         validate_password(password)
-        
-        # Check if email already exists
-        if User.objects.filter(email=attrs.get('email')).exists():
-            raise serializers.ValidationError("User with this email already exists.")
-        
-        # Check if username already exists
-        if User.objects.filter(username=attrs.get('username')).exists():
-            raise serializers.ValidationError("Username already exists.")
+        validate_unique_email(attrs.get('email'))
+        validate_unique_username(attrs.get('username'))
         
         return attrs
     
@@ -105,19 +97,13 @@ class UserUpdateSerializer(serializers.ModelSerializer):
         """
         Validate email uniqueness (excluding current user)
         """
-        user = self.instance
-        if User.objects.filter(email=value).exclude(pk=user.pk).exists():
-            raise serializers.ValidationError("User with this email already exists.")
-        return value
+        return validate_unique_email(value, exclude_pk=self.instance.pk)
     
     def validate_username(self, value):
         """
         Validate username uniqueness (excluding current user)
         """
-        user = self.instance
-        if User.objects.filter(username=value).exclude(pk=user.pk).exists():
-            raise serializers.ValidationError("Username already exists.")
-        return value
+        return validate_unique_username(value, exclude_pk=self.instance.pk)
 
 
 class AdminUserStatsSerializer(serializers.Serializer):
@@ -128,5 +114,6 @@ class AdminUserStatsSerializer(serializers.Serializer):
     active_users = serializers.IntegerField()
     inactive_users = serializers.IntegerField()
     admin_users = serializers.IntegerField()
+    moderator_users = serializers.IntegerField()
     regular_users = serializers.IntegerField()
     recent_registrations = serializers.IntegerField()
