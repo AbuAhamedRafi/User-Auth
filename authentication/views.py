@@ -8,7 +8,6 @@ from .serializers import (
     UserProfileSerializer,
     ChangePasswordSerializer
 )
-from .permissions import IsOwnerOrAdmin
 from .models import User
 
 
@@ -23,7 +22,6 @@ class RegisterView(generics.CreateAPIView):
     """
     User registration view
     """
-    queryset = User.objects.all()
     serializer_class = UserRegistrationSerializer
     permission_classes = [permissions.AllowAny]
     
@@ -35,7 +33,8 @@ class RegisterView(generics.CreateAPIView):
         refresh = RefreshToken.for_user(user)
         
         return Response({
-            'message': 'User registered successfully',
+            'access': str(refresh.access_token),
+            'refresh': str(refresh),
             'user': {
                 'id': user.id,
                 'username': user.username,
@@ -44,10 +43,6 @@ class RegisterView(generics.CreateAPIView):
                 'last_name': user.last_name,
                 'role': user.role,
                 'full_name': user.full_name,
-            },
-            'tokens': {
-                'refresh': str(refresh),
-                'access': str(refresh.access_token),
             }
         }, status=status.HTTP_201_CREATED)
 
@@ -57,24 +52,23 @@ class ProfileView(generics.RetrieveUpdateAPIView):
     User profile view - users can view and update their own profile
     """
     serializer_class = UserProfileSerializer
-    permission_classes = [permissions.IsAuthenticated, IsOwnerOrAdmin]
+    permission_classes = [permissions.IsAuthenticated]
     
     def get_object(self):
         return self.request.user
 
 
-class ChangePasswordView(generics.UpdateAPIView):
+class ChangePasswordView(generics.GenericAPIView):
     """
     Change password view
     """
     serializer_class = ChangePasswordSerializer
     permission_classes = [permissions.IsAuthenticated]
     
-    def update(self, request, *args, **kwargs):
+    def post(self, request):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         
-        # Change password
         user = request.user
         user.set_password(serializer.validated_data['new_password'])
         user.save()
@@ -100,7 +94,7 @@ class LogoutView(generics.GenericAPIView):
             return Response({
                 'message': 'Successfully logged out'
             }, status=status.HTTP_200_OK)
-        except Exception as e:
+        except Exception:
             return Response({
                 'error': 'Invalid token'
             }, status=status.HTTP_400_BAD_REQUEST)
@@ -115,16 +109,14 @@ class UserInfoView(generics.GenericAPIView):
     def get(self, request):
         user = request.user
         return Response({
-            'user': {
-                'id': user.id,
-                'username': user.username,
-                'email': user.email,
-                'first_name': user.first_name,
-                'last_name': user.last_name,
-                'role': user.role,
-                'is_admin': user.is_admin,
-                'full_name': user.full_name,
-                'created_at': user.created_at,
-                'updated_at': user.updated_at,
-            }
+            'id': user.id,
+            'username': user.username,
+            'email': user.email,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'role': user.role,
+            'is_admin': user.is_admin,
+            'full_name': user.full_name,
+            'created_at': user.created_at,
+            'updated_at': user.updated_at,
         }, status=status.HTTP_200_OK)

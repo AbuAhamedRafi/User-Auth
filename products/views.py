@@ -60,8 +60,8 @@ class ProductListCreateView(generics.ListCreateAPIView):
     permission_classes = [IsAdminOrModeratorForProducts]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['name', 'description', 'sku', 'category__name']
-    ordering_fields = ['name', 'price', 'created_at', 'stock_quantity']
-    ordering = ['name']
+    ordering_fields = ['id', 'name', 'price', 'created_at', 'stock_quantity']
+    ordering = ['id']
 
     def get_serializer_class(self):
         if self.request.method == 'POST':
