@@ -9,6 +9,9 @@ class User(AbstractUser):
     ROLE_CHOICES = [
         ('admin', 'Admin'),
         ('user', 'User'),
+        ('guest', 'Guest'),
+        ('moderator', 'Moderator'),
+        ('staff', 'Staff'),
     ]
     
     role = models.CharField(
