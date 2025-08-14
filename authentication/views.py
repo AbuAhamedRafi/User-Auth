@@ -1,16 +1,13 @@
 from rest_framework import generics, status, permissions
-from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework_simplejwt.tokens import RefreshToken
-from django.contrib.auth import authenticate
 from .serializers import (
     CustomTokenObtainPairSerializer,
     UserRegistrationSerializer,
     UserProfileSerializer,
     ChangePasswordSerializer
 )
-from .permissions import IsOwnerOrAdmin
 from .models import User
 
 
@@ -25,7 +22,6 @@ class RegisterView(generics.CreateAPIView):
     """
     User registration view
     """
-    queryset = User.objects.all()
     serializer_class = UserRegistrationSerializer
     permission_classes = [permissions.AllowAny]
     
@@ -37,7 +33,8 @@ class RegisterView(generics.CreateAPIView):
         refresh = RefreshToken.for_user(user)
         
         return Response({
-            'message': 'User registered successfully',
+            'access': str(refresh.access_token),
+            'refresh': str(refresh),
             'user': {
                 'id': user.id,
                 'username': user.username,
@@ -46,10 +43,6 @@ class RegisterView(generics.CreateAPIView):
                 'last_name': user.last_name,
                 'role': user.role,
                 'full_name': user.full_name,
-            },
-            'tokens': {
-                'refresh': str(refresh),
-                'access': str(refresh.access_token),
             }
         }, status=status.HTTP_201_CREATED)
 
@@ -59,24 +52,23 @@ class ProfileView(generics.RetrieveUpdateAPIView):
     User profile view - users can view and update their own profile
     """
     serializer_class = UserProfileSerializer
-    permission_classes = [permissions.IsAuthenticated, IsOwnerOrAdmin]
+    permission_classes = [permissions.IsAuthenticated]
     
     def get_object(self):
         return self.request.user
 
 
-class ChangePasswordView(generics.UpdateAPIView):
+class ChangePasswordView(generics.GenericAPIView):
     """
     Change password view
     """
     serializer_class = ChangePasswordSerializer
     permission_classes = [permissions.IsAuthenticated]
     
-    def update(self, request, *args, **kwargs):
+    def post(self, request):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         
-        # Change password
         user = request.user
         user.set_password(serializer.validated_data['new_password'])
         user.save()
@@ -86,36 +78,37 @@ class ChangePasswordView(generics.UpdateAPIView):
         }, status=status.HTTP_200_OK)
 
 
-@api_view(['POST'])
-@permission_classes([permissions.IsAuthenticated])
-def logout_view(request):
+class LogoutView(generics.GenericAPIView):
     """
     Logout view - blacklist refresh token
     """
-    try:
-        refresh_token = request.data.get('refresh_token')
-        if refresh_token:
-            token = RefreshToken(refresh_token)
-            token.blacklist()
-        
-        return Response({
-            'message': 'Successfully logged out'
-        }, status=status.HTTP_200_OK)
-    except Exception as e:
-        return Response({
-            'error': 'Invalid token'
-        }, status=status.HTTP_400_BAD_REQUEST)
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def post(self, request):
+        try:
+            refresh_token = request.data.get('refresh_token')
+            if refresh_token:
+                token = RefreshToken(refresh_token)
+                token.blacklist()
+            
+            return Response({
+                'message': 'Successfully logged out'
+            }, status=status.HTTP_200_OK)
+        except Exception:
+            return Response({
+                'error': 'Invalid token'
+            }, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['GET'])
-@permission_classes([permissions.IsAuthenticated])
-def user_info_view(request):
+class UserInfoView(generics.GenericAPIView):
     """
     Get current user information
     """
-    user = request.user
-    return Response({
-        'user': {
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get(self, request):
+        user = request.user
+        return Response({
             'id': user.id,
             'username': user.username,
             'email': user.email,
@@ -126,5 +119,4 @@ def user_info_view(request):
             'full_name': user.full_name,
             'created_at': user.created_at,
             'updated_at': user.updated_at,
-        }
-    }, status=status.HTTP_200_OK)
+        }, status=status.HTTP_200_OK)

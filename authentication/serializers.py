@@ -1,8 +1,8 @@
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
 from .models import User
+from .utils import validate_unique_email, validate_unique_username, validate_password_confirmation
 
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -58,13 +58,10 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         password = attrs.get('password')
         password_confirm = attrs.pop('password_confirm', None)
         
-        if password != password_confirm:
-            raise serializers.ValidationError("Passwords don't match.")
+        validate_password_confirmation(password, password_confirm)
         validate_password(password)
-        if User.objects.filter(email=attrs.get('email')).exists():
-            raise serializers.ValidationError("User with this email already exists.")
-        if User.objects.filter(username=attrs.get('username')).exists():
-            raise serializers.ValidationError("Username already exists.")
+        validate_unique_email(attrs.get('email'))
+        validate_unique_username(attrs.get('username'))
         
         return attrs
     
